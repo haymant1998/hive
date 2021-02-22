@@ -179,6 +179,17 @@ public class TestReplicationScenariosAcidTables extends BaseReplicationScenarios
   }
 
   @Test
+  public void dummyTest(){
+    WarehouseInstance.Tuple bootstrapDump = prepareDataAndDump(primaryDbName, null);
+    replica.load(replicatedDbName, primaryDbName);
+    prepareIncAcidData(primaryDbName);
+    WarehouseInstance.Tuple incDump = primary.dump(primaryDbName);
+    replica.load(replicatedDbName, primaryDbName);
+    WarehouseInstance.Tuple incDump = primary.dump(primaryDbName);
+    replica.load(replicatedDbName, primaryDbName);
+  }
+
+  @Test
   /**
    * Testcase for getting immutable dataset dump, and its corresponding repl load.
    */

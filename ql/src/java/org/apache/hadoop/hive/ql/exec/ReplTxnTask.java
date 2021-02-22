@@ -28,10 +28,14 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.parse.ReplicationSpec;
+import org.apache.hadoop.hive.ql.parse.SemanticException;
+import org.apache.hadoop.hive.ql.parse.repl.dump.Utils;
 import org.apache.hadoop.hive.ql.plan.ReplTxnWork;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.StringUtils;
+
+import org.apache.hadoop.fs.Path;
 import java.util.List;
 import org.apache.hadoop.hive.common.ValidTxnList;
 
@@ -91,6 +95,8 @@ public class ReplTxnTask extends Task<ReplTxnWork> {
         assert txnIds.size() == work.getTxnIds().size();
         LOG.info("Replayed OpenTxn Event for policy " + replPolicy + " with srcTxn " +
             work.getTxnIds().toString() + " and target txn id " + txnIds.toString());
+        if(work.getTxnIds().size() == 1)
+          createOpenTxnMetadataFile(new Path(work.getDumpDirectory(), "_openTxnMetadata"), work.getTxnIds().get(0));
         return 0;
       case REPL_ABORT_TXN:
         for (long txnId : work.getTxnIds()) {
@@ -150,5 +156,10 @@ public class ReplTxnTask extends Task<ReplTxnWork> {
 
   public ReplTxnWork.OperationType getOperationType() {
     return work.getOperationType();
+  }
+
+  private void createOpenTxnMetadataFile(Path filePath, Long srcTxnId) throws SemanticException {
+    Utils.writeOutput(String.valueOf(srcTxnId), filePath, conf);
+    LOG.info("Created OpenTxn Metadata File : {} with openTxnId {}", filePath, srcTxnId);
   }
 }
