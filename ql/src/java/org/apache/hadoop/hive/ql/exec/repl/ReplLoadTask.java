@@ -494,7 +494,7 @@ public class ReplLoadTask extends Task<ReplLoadWork> implements Serializable {
     if ((work.isIncrementalLoad() && !work.incrementalLoadTasksBuilder().hasMoreWork() && !work.hasBootstrapLoadTasks())
         || (!work.isIncrementalLoad() && !work.hasBootstrapLoadTasks())) {
       //All repl load tasks are executed and status is 0, create the task to add the acknowledgement
-      NotWork notifWork = new NotWork(new Path(work.dumpDirectory, "_notification_id"), work.getMetricCollector());
+      NotWork notifWork = new NotWork(work.dumpDirectory, work.getMetricCollector(), conf, work.dbNameToLoadIn);
       Task<NotWork> createNotWorkTask = TaskFactory.get(notifWork, conf);
       if(childTasks.isEmpty()){
         childTasks.add(createNotWorkTask);

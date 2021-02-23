@@ -20,11 +20,13 @@
 package org.apache.hadoop.hive.ql.exec.repl;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.parse.repl.metric.ReplicationMetricCollector;
 import org.apache.hadoop.hive.ql.plan.Explain;
 
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * Notification Event file dump on repl dump completion.
@@ -33,24 +35,39 @@ import java.io.Serializable;
 @Explain(displayName = "Notification Event File", explainLevels = { Explain.Level.USER, Explain.Level.DEFAULT, Explain.Level.EXTENDED })
 public class NotWork implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Path notificationFilePath;
+    private String dumpLocation;
     private transient ReplicationMetricCollector metricCollector;
+    private HiveConf hiveConf;
+    public String dbName;
 
-    public Path getNotificationFilePath() {
-        return notificationFilePath;
-    }
     public ReplicationMetricCollector getMetricCollector() {
         return metricCollector;
     }
+    public long fetchSrcTxnId() throws IOException {
+        FileSystem fs = new Path(dumpLocation).getFileSystem(hiveConf);
+        Path openSrcTxnFile = new Path(dumpLocation, "_openTxnMetadata");
+        InputStream inputStream = fs.open(openSrcTxnFile);
 
-    public NotWork(Path notificationFilePath, ReplicationMetricCollector metricCollector) {
-        this.notificationFilePath = notificationFilePath;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        long srcTxnId = 0;
+        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+            srcTxnId = Long.parseLong(line);
+        }
+        if(reader!= null) reader.close();
+        return srcTxnId;
+    }
+
+    public NotWork(String dumpLocation, ReplicationMetricCollector metricCollector,
+                   HiveConf hiveConf, String dbName) {
         this.metricCollector = metricCollector;
-    }
-    public NotWork(Path notificationFilePath) {
-        this.notificationFilePath = notificationFilePath;
+        this.dumpLocation = dumpLocation;
+        this.hiveConf = hiveConf;
+        this.dbName = dbName;
     }
 
+    public String getDumpLocation(){
+        return dumpLocation;
+    }
 
 }
 
