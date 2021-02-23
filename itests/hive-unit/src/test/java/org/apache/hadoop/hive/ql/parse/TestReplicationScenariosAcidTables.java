@@ -179,14 +179,14 @@ public class TestReplicationScenariosAcidTables extends BaseReplicationScenarios
   }
 
   @Test
-  public void dummyTest(){
+  public void dummyTest() throws Throwable{
     WarehouseInstance.Tuple bootstrapDump = prepareDataAndDump(primaryDbName, null);
     replica.load(replicatedDbName, primaryDbName);
     prepareIncAcidData(primaryDbName);
     WarehouseInstance.Tuple incDump = primary.dump(primaryDbName);
     replica.load(replicatedDbName, primaryDbName);
-    WarehouseInstance.Tuple incDump = primary.dump(primaryDbName);
-    replica.load(replicatedDbName, primaryDbName);
+    WarehouseInstance.Tuple incDump2 = primary.dump(primaryDbName);
+    //Test any open transaction in replica
   }
 
   @Test
